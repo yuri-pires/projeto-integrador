@@ -1,0 +1,31 @@
+pipeline {
+  agent any
+
+  parameters {
+    string{name: 'SPEC', defaultValue: 'tests/arquivo-de-carga.js', description: 'Ex: tests/Inserir-Servico.js'}
+  }
+
+  stages {
+    
+    stage('Build') {
+      steps {
+      echo 'Installing k6'
+      sh 'sudo chmod +x setup_k6.sh'
+      sh 'sudo ./setup_k6.sh'
+      }
+    }
+
+    stage('Performance Test') {
+      steps {
+        echo 'Running K6 performance tests...'
+        sh 'k6 run tests/${SPEC}'
+      }
+    }
+  }
+
+  post{
+    always {
+      publishHTML(target: [allowMissing: false, alwaysLinkToLastBuild: false, keepAll: true, reportDir: 'reports/k6', reportFiles: '${SPEC}.html', reportName: 'HTML Dashboard', reportTitles: ''])
+    }
+  }
+}
